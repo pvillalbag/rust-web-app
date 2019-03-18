@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::env;
 use rocket::http::Status;
 use rocket::request::{self, FromRequest};
 use rocket::{Request, State, Outcome};
@@ -8,12 +9,11 @@ use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 // An alias to the type for a pool of Diesel Mysql Connection
 pub type MysqlPool = Pool<ConnectionManager<MysqlConnection>>;
 
-// The URL to the database, set via the `DATABASE_URL` environment variable.
-static DATABASE_URL: &str = env!("DATABASE_URL");
-
 /// Initialize the database pool.
 pub fn connect() -> MysqlPool {
-    let manager = ConnectionManager::<MysqlConnection>::new(DATABASE_URL);
+    let database_url = env::var("DATABASE_URL").unwrap();
+    println!("{}", database_url);
+    let manager = ConnectionManager::<MysqlConnection>::new(database_url);
     Pool::new(manager).expect("Failed to create pool")
 }
 
