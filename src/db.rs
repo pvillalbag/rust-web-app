@@ -12,7 +12,6 @@ pub type MysqlPool = Pool<ConnectionManager<MysqlConnection>>;
 /// Initialize the database pool.
 pub fn connect() -> MysqlPool {
     let database_url = env::var("DATABASE_URL").unwrap();
-    println!("{}", database_url);
     let manager = ConnectionManager::<MysqlConnection>::new(database_url);
     Pool::new(manager).expect("Failed to create pool")
 }

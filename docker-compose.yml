@@ -2,6 +2,19 @@ version: '3.3'
 
 services:
 
+  web:
+    build: 
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile
+    ports:
+      - 8888:80
+    restart: always
+    depends_on: 
+      - db
+    environment:
+      DATABASE_URL: mysql://user:password@db:3306/heroes
+      ROCKET_ENV: prod
+
   db:
     image: mysql
     restart: always
