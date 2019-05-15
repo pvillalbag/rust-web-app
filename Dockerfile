@@ -18,5 +18,4 @@ WORKDIR /app
 ADD . .
 ENV DATABASE_URL=url
 RUN cargo build --release
-WORKDIR /app/target/release
 CMD ["/app/target/release/./hero-api"]
