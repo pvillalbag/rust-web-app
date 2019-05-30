@@ -8,10 +8,9 @@ RUN apt-get update \
     && apt-get install libmysqlclient-dev curl build-essential -y \
     && curl -sf -L https://static.rust-lang.org/rustup.sh | sh -s -- -y
 
-RUN mv $HOME/.cargo/bin/* /usr/local/bin/
      
 RUN cargo install diesel_cli --no-default-features --force --features mysql   
-
+RUN mv $HOME/.cargo/bin/* /usr/local/bin/
 RUN rustup default nightly-2018-04-04
 
 WORKDIR /app
