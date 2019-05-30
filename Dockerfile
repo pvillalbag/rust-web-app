@@ -9,7 +9,7 @@ RUN apt-get update \
     && curl -sf -L https://static.rust-lang.org/rustup.sh | sh -s -- -y
 
      
-RUN cargo install diesel_cli --no-default-features --force --features mysql   
+RUN $HOME/.cargo/bin/cargo install diesel_cli --no-default-features --force --features mysql   
 RUN mv $HOME/.cargo/bin/* /usr/local/bin/
 RUN rustup default nightly-2018-04-04
 
