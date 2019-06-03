@@ -4,6 +4,8 @@ pipeline {
 		stage('Saludos') {
 			steps {
 				echo "Hola!"
+				echo "Testing webhook"
+				sh "env"
 			}
 		}
 	}
