@@ -8,5 +8,10 @@ pipeline {
 				sh "env"
 			}
 		}
+		stage('Mi usuario') {
+			steps {
+				echo "Mi nombre de usuario es ${whoami}"
+			}
+		}
 	}
 }
