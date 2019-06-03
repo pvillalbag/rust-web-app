@@ -21,6 +21,7 @@ pipeline {
 				}
 			}
 			steps {
+				sh "apt-get update && apt-get install curl -y"
 				sh "curl http://wttr.in/cijuela"
 			}
 		}
