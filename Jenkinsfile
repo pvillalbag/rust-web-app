@@ -1,5 +1,7 @@
 pipeline {
 	stage('Saludos') {
-		echo "Hola!"
+		steps {
+			echo "Hola!"
+		}
 	}
 }
