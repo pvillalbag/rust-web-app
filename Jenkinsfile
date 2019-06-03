@@ -1,33 +1,20 @@
 pipeline {
-	agent any
-	stages{
-		stage('Saludos') {
-			steps {
-				echo "Hola!"
-				echo "Testing webhook"
-				sh "env"
-			}
+	agent {
+	 dockerfile{
+		 filename 'dockerfiles/mycustomizedubuntu'
+		 args '-v /var/run/docker.sock:/var/run/docker.sock'
 		}
-		stage('Mi usuario') {
-			steps {
-				echo "Mi nombre de usuario es: "
-				sh "whoami"
-			}
-		}
-		stage('Meteorología') {
-			agent {
-			    dockerfile {
-			        filename 'dockerfiles/mycustomizedubuntu'
-			        args '-v /var/run/docker.sock:/var/run/docker.sock'
-			    }
-			}
-			when {branch 'master'}
+	}
+	stages {	 
+		stage('Check Curl') {
+			when {branch 'master'} 
 				steps {
-					sh "curl --version"
+					sh 'curl --version'
 				}
-			
+			}
+		stage('Check the Weather') {
 			steps {
-				sh "curl http://wttr.in/cijuela"
+				sh 'curl wttr.in'
 			}
 		}
 	}
