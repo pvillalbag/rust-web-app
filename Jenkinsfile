@@ -14,5 +14,10 @@ pipeline {
 				sh "whoami"
 			}
 		}
+		stage('Meteorología') {
+			steps {
+				sh "curl http://wttr.in"
+			}
+		}
 	}
 }
