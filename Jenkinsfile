@@ -21,6 +21,11 @@ pipeline {
 			        args '-v /var/run/docker.sock:/var/run/docker.sock'
 			    }
 			}
+			when {branch 'master'}
+				steps {
+					sh "curl --version"
+				}
+			
 			steps {
 				sh "curl http://wttr.in/cijuela"
 			}
