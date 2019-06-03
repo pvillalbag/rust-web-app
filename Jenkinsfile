@@ -15,8 +15,13 @@ pipeline {
 			}
 		}
 		stage('Meteorología') {
+			agent {
+				docker {
+					image 'ubuntu:latest'
+				}
+			}
 			steps {
-				sh "curl http://wttr.in"
+				sh "curl http://wttr.in/cijuela"
 			}
 		}
 	}
