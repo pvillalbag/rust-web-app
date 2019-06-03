@@ -16,12 +16,12 @@ pipeline {
 		}
 		stage('Meteorología') {
 			agent {
-				docker {
-					image 'ubuntu:latest'
-				}
+			    dockerfile {
+			        filename 'dockerfiles/mycustomizedubuntu'
+			        args '-v /var/run/docker.sock:/var/run/docker.sock'
+			    }
 			}
 			steps {
-				sh "apt-get update && apt-get install curl -y"
 				sh "curl http://wttr.in/cijuela"
 			}
 		}
