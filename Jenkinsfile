@@ -10,7 +10,8 @@ pipeline {
 		}
 		stage('Mi usuario') {
 			steps {
-				echo "Mi nombre de usuario es ${whoami}"
+				echo "Mi nombre de usuario es: "
+				sh "whoami"
 			}
 		}
 	}
