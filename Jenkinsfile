@@ -65,6 +65,22 @@ pipeline {
 				sh 'docker run --rm --net ${DOCKER_NETWORK_NAME} byrnedo/alpine-curl --fail -I http://${DOCKER_IMAGE}/health'
 			}
 		}
+		
+		stage('DB Migration') {
+			agent {
+				dockerfile {
+					filename 'dockerfiles/diesel-cli.dockerfile' 
+					args '-v ${PWD}:/volume \
+						-w /volume \
+						--entrypoint="" \
+						--net ${DOCKER_NETWORK_NAME} \
+						-e DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${DB_IMAGE}:3306/${MYSQL_DATABASE}'
+				}
+			}
+			steps {
+				sh 'diesel migration run' 
+			}
+		}
 	}//stages
 	post {
 		success {
