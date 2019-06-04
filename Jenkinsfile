@@ -10,6 +10,9 @@ pipeline {
 		MYSQL_DATABASE = 'heroes'
 		MYSQL_USER = 'user'
 		MYSQL_PASSWORD = 'password'
+		
+		SLACK_CHANNEL = 'a-bit-of-everything'
+		SLACK_TEAM_DOMAIN = 'devopspipelines'
 	}
 	agent any
 	
@@ -59,13 +62,27 @@ pipeline {
 		
 		stage('Smoke Test') {
 			steps {
-//				sh 'curl --fail -I http://0.0.0.0:8888/health'
-				sh 'echo ${JOB_NAME}'
 				sh 'docker run --rm --net ${DOCKER_NETWORK_NAME} byrnedo/alpine-curl --fail -I http://${DOCKER_IMAGE}/health'
 			}
 		}
 	}//stages
 	post {
+		success {
+			slackSend (
+				channel: ${SLACK_CHANNEL},
+				teamDomain: ${SLACK_TEAM_DOMAIN},
+				tokenCredentialId: 'SLACK_TOKEN_ID',
+				color: '#00FF00',
+				message:  "SUCCESSFUL: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
+		}
+		failure {
+			slackSend (
+				channel: ${SLACK_CHANNEL},
+				teamDomain: ${SLACK_TEAM_DOMAIN},
+				tokenCredentialId: 'SLACK_TOKEN_ID',
+				color: '#FF0000',
+				message:  "SUCCESSFUL: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
+		}
 		always {
 			sh 'docker kill ${DOCKER_IMAGE} ${DB_IMAGE} || TRUE'
 			sh 'docker network rm ${DOCKER_NETWORK_NAME} || TRUE'
