@@ -99,7 +99,7 @@ pipeline {
 			}
 		}
 		
-		stage('Integration Test'){
+		stage('Integration E2E Test'){
 			agent {
 				dockerfile {
 					filename 'dockerfiles/python.dockerfile'
