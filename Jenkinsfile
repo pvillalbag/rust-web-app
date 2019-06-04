@@ -69,16 +69,16 @@ pipeline {
 	post {
 		success {
 			slackSend (
-				channel: ${SLACK_CHANNEL},
-				teamDomain: ${SLACK_TEAM_DOMAIN},
+				channel: "${SLACK_CHANNEL}",
+				teamDomain: "${SLACK_TEAM_DOMAIN}",
 				tokenCredentialId: 'SLACK_TOKEN_ID',
 				color: '#00FF00',
 				message:  "SUCCESSFUL: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
 		}
 		failure {
 			slackSend (
-				channel: ${SLACK_CHANNEL},
-				teamDomain: ${SLACK_TEAM_DOMAIN},
+				channel: "${SLACK_CHANNEL}",
+				teamDomain: "${SLACK_TEAM_DOMAIN}",
 				tokenCredentialId: 'SLACK_TOKEN_ID',
 				color: '#FF0000',
 				message:  "SUCCESSFUL: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
