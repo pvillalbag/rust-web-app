@@ -164,8 +164,8 @@ pipeline {
 				message:  "SUCCESSFUL: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
 		}
 		always {
-			sh 'docker kill ${DOCKER_IMAGE} ${DB_IMAGE} || TRUE'
-			sh 'docker network rm ${DOCKER_NETWORK_NAME} || TRUE'
+			sh 'docker kill ${DOCKER_IMAGE} ${DB_IMAGE} || true'
+			sh 'docker network rm ${DOCKER_NETWORK_NAME} || true'
 		}
 	}
 }
