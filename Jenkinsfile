@@ -80,6 +80,39 @@ pipeline {
 			}
 		}
 		
+		stage('Produntion: DB Migration') {
+			agent {
+				dockerfile {
+					filename 'dockerfiles/diesel-cli.dockerfile' 
+					args '--entrypoint="" --net=host \
+					-e DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@0.0.0.0:3305/${MYSQL_DATABASE}'    
+				}
+			}
+			steps {
+				sh 'diesel migration run'
+			}
+		}
+		
+		stage('Friendly Reminder Authorization before Deploying') {
+			steps {
+				slackSend (channel: "${SLACK_CHANNEL}", 
+					teamDomain: "${SLACK_TEAM_DOMAIN}", 
+					tokenCredentialId: 'SLACK_TOKEN_ID', 
+					color: '#E8EA25', 
+					message: "Job '${JOB_NAME} [${BUILD_NUMBER}]' is waiting for authorization before deploying to production. (${BUILD_URL})")
+			}
+		}
+		
+		stage('Authorization before Deploying') {
+			input {
+				message "Let's Deploy !!!"
+				ok "Yeaaahh !!!"
+			} 
+			steps {
+				echo "Authorization before Deploying"
+			} 
+		}
+		
 		/*stage('Deploy to Staging') {
 			agent {
 				docker {
