@@ -52,6 +52,9 @@ pipeline {
 					reuseNode true
 				}
 			}
+			steps {
+				sh 'docker-compose down'
+			}
 		}
 	}
 }
