@@ -14,11 +14,13 @@ pipeline {
 		AWS_STAGING = credentials('AWS')
         AWS_STAGING_DEFAULT_REGION = 'eu-west-1'
         AWS_STAGING_CLUSTER_NAME= 'cluster-of-User6'
-		
+		/*PROD*/
 		AWS_PROD = credentials('AWS')
 		AWS_PROD_DEFAULT_REGION = 'eu-west-1'
 		AWS_PROD_CLUSTER_NAME= 'cluster-of-User6'
 		
+		DOCKER_PF_DB_PROD = 'db-port-forward-prod'
+		/*PROD*/
 		DOCKER_PF_WEB = 'web-port-forward-smoke-test'
 		DOCKER_PF_DB = 'db-port-forward-smoke-test'
 		
@@ -42,7 +44,7 @@ pipeline {
 			}
 		}
 		
-		stage('Deploy to Prodution') {
+		stage('Deploy to Production') {
 			agent {
 				docker {
 					image 'mendrugory/ekskubectl'
@@ -54,6 +56,28 @@ pipeline {
 			steps {
 				sh 'kubectl apply -f deployment/prod/prod.yaml'
 			}                
+		}
+		
+		stage('Production: Port Forwarding') {                     
+			steps {
+				script {
+					PODNAME = sh(script: "docker run -v ${HOME}/.kube:/root/.kube \
+						-e AWS_ACCESS_KEY_ID=${AWS_PROD_USR} \
+						-e AWS_SECRET_ACCESS_KEY=${AWS_PROD_PSW} \
+						mendrugory/ekskubectl kubectl get pods -l app=db \
+						-o jsonpath='{.items[0].metadata.name}'", returnStdout: true)
+					echo "The pod is ${PODNAME}"                                        
+				sh(script: "docker run --name ${DOCKER_PF_DB_PROD} \
+					-v ${HOME}/.kube:/root/.kube -p 3305:3306 --rm \
+					-v /var/run/docker.sock:/var/run/docker.sock    \
+					-e AWS_ACCESS_KEY_ID=${AWS_PROD_USR} \
+					-e AWS_SECRET_ACCESS_KEY=${AWS_PROD_PSW} \
+					mendrugory/ekskubectl \
+					kubectl port-forward \
+					--address 0.0.0.0 ${PODNAME} 3305:3306 &")
+				sh 'sleep 10'
+				}
+			}
 		}
 		
 		/*stage('Deploy to Staging') {
