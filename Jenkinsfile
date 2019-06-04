@@ -111,6 +111,13 @@ pipeline {
 				sh 'python3 integration_tests/integration_e2e_test.py'
 			}
 		}
+		
+		stage('Docker Push'){
+			steps {
+				sh 'docker tag ${DOCKER_IMAGE} ${REGISTRY_HOST}/${DOCKER_IMAGE}'
+				sh 'docker push ${REGISTRY_HOST}/${DOCKER_IMAGE}'
+			}
+		}
 	}//stages
 	post {
 		success {
