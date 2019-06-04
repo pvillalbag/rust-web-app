@@ -66,7 +66,7 @@ pipeline {
 			}
 		}
 		
-		stage('Produntion: DB Migration') {
+		stage('Production: DB Migration') {
 			agent {
 				dockerfile {
 					filename 'dockerfiles/diesel-cli.dockerfile' 
