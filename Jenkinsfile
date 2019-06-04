@@ -44,20 +44,6 @@ pipeline {
 			}
 		}
 		
-		stage('Deploy to Production') {
-			agent {
-				docker {
-					image 'mendrugory/ekskubectl'
-					args '-v ${HOME}/.kube:/root/.kube \
-						-e AWS_ACCESS_KEY_ID=${AWS_PROD_USR} \
-						-e AWS_SECRET_ACCESS_KEY=${AWS_PROD_PSW}'
-					}
-				}                        
-			steps {
-				sh 'kubectl apply -f deployment/prod/prod.yaml'
-			}                
-		}
-		
 		stage('Production: Port Forwarding') {                     
 			steps {
 				script {
@@ -111,6 +97,22 @@ pipeline {
 			steps {
 				echo "Authorization before Deploying"
 			} 
+		}
+		
+		
+		
+		stage('Deploy to Production') {
+			agent {
+				docker {
+					image 'mendrugory/ekskubectl'
+					args '-v ${HOME}/.kube:/root/.kube \
+						-e AWS_ACCESS_KEY_ID=${AWS_PROD_USR} \
+						-e AWS_SECRET_ACCESS_KEY=${AWS_PROD_PSW}'
+					}
+				}                        
+			steps {
+				sh 'kubectl apply -f deployment/prod/prod.yaml'
+			}                
 		}
 		
 		/*stage('Deploy to Staging') {
