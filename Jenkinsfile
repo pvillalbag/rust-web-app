@@ -87,7 +87,7 @@ pipeline {
 			}                
 		}
 		
-		stage('Staging: Integration Test') {
+		/*stage('Staging: Integration Test') {
 			agent {
 				dockerfile {
 					filename 'mendrugory/ekskubectl' 
@@ -99,7 +99,7 @@ pipeline {
 			steps {
 				sh 'kubectl exec -n staging -it ${K8S_IT_POD} -- python3 integration_tests/integration_test.py' 
 			}                
-		}
+		}*/
 	}//stages
 	post {
 		success {
