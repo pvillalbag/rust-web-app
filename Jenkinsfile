@@ -14,13 +14,6 @@ pipeline {
 		AWS_STAGING = credentials('AWS')
         AWS_STAGING_DEFAULT_REGION = 'eu-west-1'
         AWS_STAGING_CLUSTER_NAME= 'cluster-of-User6'
-		/*PROD*/
-		AWS_PROD = credentials('AWS')
-		AWS_PROD_DEFAULT_REGION = 'eu-west-1'
-		AWS_PROD_CLUSTER_NAME= 'cluster-of-User6'
-		
-		DOCKER_PF_DB_PROD = 'db-port-forward-prod'
-		/*PROD*/
 		DOCKER_PF_WEB = 'web-port-forward-smoke-test'
 		DOCKER_PF_DB = 'db-port-forward-smoke-test'
 		
@@ -28,6 +21,15 @@ pipeline {
 		
 		SLACK_CHANNEL = 'a-bit-of-everything'
 		SLACK_TEAM_DOMAIN = 'devopspipelines'
+		
+		
+		/*PROD*/
+		AWS_PROD = credentials('AWS')
+		AWS_PROD_DEFAULT_REGION = 'eu-west-1'
+		AWS_PROD_CLUSTER_NAME= 'cluster-of-User6'
+		
+		DOCKER_PF_DB_PROD = 'db-port-forward-prod'
+		/*PROD*/
 	}
 	agent any
 	
@@ -41,6 +43,19 @@ pipeline {
 					mendrugory/awscli \
 					aws eks --region ${AWS_PROD_DEFAULT_REGION} \
 					update-kubeconfig --name ${AWS_PROD_CLUSTER_NAME}'
+			}
+		}
+		
+		stage('Production: DB Migration') {
+			agent {
+				dockerfile {
+					filename 'dockerfiles/diesel-cli.dockerfile' 
+					args '--entrypoint="" --net=host \
+					-e DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@0.0.0.0:3305/${MYSQL_DATABASE}'    
+				}
+			}
+			steps {
+				sh 'diesel migration run'
 			}
 		}
 		
@@ -63,19 +78,6 @@ pipeline {
 					--address 0.0.0.0 ${PODNAME} 3305:3306 &")
 				sh 'sleep 10'
 				}
-			}
-		}
-		
-		stage('Production: DB Migration') {
-			agent {
-				dockerfile {
-					filename 'dockerfiles/diesel-cli.dockerfile' 
-					args '--entrypoint="" --net=host \
-					-e DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@0.0.0.0:3305/${MYSQL_DATABASE}'    
-				}
-			}
-			steps {
-				sh 'diesel migration run'
 			}
 		}
 		
