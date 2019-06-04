@@ -28,7 +28,7 @@ pipeline {
 			agent{
 				dockerfile{
 					filename 'dockerfiles/docker-compose.dockerfile'
-					args "--net host -v /var/run/docker.sock:/var/run/docker.sock"
+					args "-v /var/run/docker.sock:/var/run/docker.sock"
 					reuseNode true
 				}
 			}
@@ -40,7 +40,9 @@ pipeline {
 		
 		stage('Smoke Test') {
 			steps {
-				sh 'curl --fail -I http://0.0.0.0:8888/health'
+//				sh 'curl --fail -I http://0.0.0.0:8888/health'
+				sh 'echo ${JOB_NAME}'
+				sh 'docker run --rm --net $(echo ${JOB_NAME} | sed "s@/@_@g")_default byrnedo/alpine-curl --fail -I http://web/health'
 			}
 		}
 		
@@ -48,7 +50,7 @@ pipeline {
 			agent{
 				dockerfile{
 					filename 'dockerfiles/docker-compose.dockerfile'
-					args "--net host -v /var/run/docker.sock:/var/run/docker.sock"
+					args "-v /var/run/docker.sock:/var/run/docker.sock"
 					reuseNode true
 				}
 			}

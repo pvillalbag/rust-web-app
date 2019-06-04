@@ -6,8 +6,6 @@ services:
     build:
       context: .
       dockerfile: ./dockerfiles/Dockerfile
-    ports:
-      - 8888:80
     restart: always
     depends_on: 
       - db
@@ -18,8 +16,6 @@ services:
   db:
     image: mysql
     restart: always
-    ports:
-      - 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD: pass
       MYSQL_DATABASE: heroes
