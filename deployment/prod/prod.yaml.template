@@ -1,0 +1,97 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+  namespace: default
+  labels:
+    app: db
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - image: mysql
+        name: db
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: pass
+        - name: MYSQL_DATABASE
+          value: heroes
+        - name: MYSQL_USER
+          value: user
+        - name: MYSQL_PASSWORD
+          value: password                              
+        ports:
+        - containerPort: 3306
+          name: db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: default
+  labels:
+    app: db  
+spec:
+  ports:
+  - port: 3306
+    targetPort: db
+  selector:
+    app: db
+---    
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: default
+  labels:
+    app: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web  
+      track: stable
+  template:
+    metadata:
+      labels:
+        app: web
+        track: stable
+    spec:
+      imagePullSecrets:
+      - name: private-registry
+      containers:
+      - image: 52.18.239.125/web:{{VERSION}}
+        name: web
+        env:
+        - name: DATABASE_URL
+          value: mysql://user:password@db:3306/heroes
+        - name: ROCKET_ENV
+          value: prod
+        ports:
+        - containerPort: 80
+          name: web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: default
+  labels:
+    app: web  
+    track: stable
+spec:
+  ports:
+  - port: 80
+    targetPort: web
+  selector:
+    app: web
+    track: stable
+  type: NodePort

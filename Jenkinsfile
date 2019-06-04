@@ -46,19 +46,6 @@ pipeline {
 			}
 		}
 		
-		stage('Production: DB Migration') {
-			agent {
-				dockerfile {
-					filename 'dockerfiles/diesel-cli.dockerfile' 
-					args '--entrypoint="" --net=host \
-					-e DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@0.0.0.0:3305/${MYSQL_DATABASE}'    
-				}
-			}
-			steps {
-				sh 'diesel migration run'
-			}
-		}
-		
 		stage('Production: Port Forwarding') {                     
 			steps {
 				script {
@@ -113,8 +100,22 @@ pipeline {
 					}
 				}                        
 			steps {
+				sh "sed 's@{{VERSION}}@$BUILD_NUMBER@g' deployment/prod/prod.yaml.template > deployment/prod/prod.yaml"
 				sh 'kubectl apply -f deployment/prod/prod.yaml'
 			}                
+		}
+		
+		stage('Production: DB Migration') {
+			agent {
+				dockerfile {
+					filename 'dockerfiles/diesel-cli.dockerfile' 
+					args '--entrypoint="" --net=host \
+					-e DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@0.0.0.0:3305/${MYSQL_DATABASE}'    
+				}
+			}
+			steps {
+				sh 'diesel migration run'
+			}
 		}
 		
 		/*stage('Deploy to Staging') {
