@@ -47,9 +47,15 @@ fn delete(id: i32, connection: db::Connection) -> Json<Value> {
     }))
 }
 
+#[get("/")]
+fn health(_connection: db::Connection) -> &'static str {
+    "Up and Running !!!"
+}
+
 fn main() {
     rocket::ignite()
         .manage(db::connect())
+		.mount("/health", routes![health])
         .mount("/hero", routes![create, update, delete, read])
         .mount("/heroes", routes![read_all])
         .launch();
