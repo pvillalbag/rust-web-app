@@ -1,0 +1,143 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: integration-tests
+  namespace: staging
+data:
+  integration_test.py: |
+    import sys, os
+    import requests
+    import json
+    import mysql.connector as mysql
+    import time
+    from random import randint
+
+    hero = {
+        "id": randint(100, 9999),
+        "name": "Batman",
+        "identity": "Bruce Wayne",
+        "hometown": "Gotham City",
+        "age": 40
+    }
+
+    def post_hero(host, data):
+        url = 'http://{}/hero'.format(host)
+        headers = {'content-type': 'application/json'}
+        requests.post(url, data=json.dumps(data), headers=headers)
+
+    def query_db(host, database, user, password, id):
+        query = 'SELECT * FROM heroes WHERE id={} limit 1;'.format(id)
+        conn = mysql.connect( \
+            host=host, user=user, password=password, database=database, \
+            auth_plugin='mysql_native_password' \
+        )
+        cursor = conn.cursor()
+        cursor.execute(query)   
+        (r_id, r_name, r_identity, r_hometown, r_age) = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return {
+            "id": r_id,
+            "name": r_name,
+            "identity": r_identity,
+            "hometown": r_hometown,
+            "age": r_age
+        }
+        
+    def integration_test():
+        post_hero(os.environ['WEB_HOST'], hero)
+        received_hero = query_db(os.environ['DB_HOST'], \
+            os.environ['DB_DATABASE'], \
+            os.environ['DB_USER'], \
+            os.environ['DB_PASSWORD'], \
+            hero['id']) 
+        if hero == received_hero:
+            print("Integration test passed.")
+            time.sleep(2)
+        else:
+            print("Integration test is not passed.")
+            print("The heroes are not the same")
+            print("{} != {}".format(hero, received_hero))
+            time.sleep(2)
+            sys.exit(1)
+
+    if __name__ == "__main__":
+        integration_test()   
+
+  integration_e2e_test.py: |
+    import sys, os
+    import requests
+    import json
+    import mysql.connector as mysql
+    import time
+    from random import randint
+
+    hero = {
+        "id": randint(10, 99),
+        "name": "Robin",
+        "identity": "Dick Grayson",
+        "hometown": "Gotham City",
+        "age": 18
+    }
+
+    def post_hero(host, data):
+        url = 'http://{}/hero'.format(host)
+        headers = {'content-type': 'application/json'}
+        requests.post(url, data=json.dumps(data), headers=headers)
+
+    def get_hero(host, id):
+        url = 'http://{}/hero/{}'.format(host, id)
+        headers = {'content-type': 'application/json'}
+        r = requests.get(url, headers=headers)    
+        return r.json()
+
+        
+    def integration_test():
+        post_hero(os.environ['WEB_HOST'], hero)
+        received_hero = get_hero(os.environ['WEB_HOST'], hero['id'])
+        if hero == received_hero:
+            print("Integration e2e test passed.")
+            time.sleep(2)
+        else:
+            print("Integration test is not passed.")
+            print("The heroes are not the same")
+            print("{} != {}".format(hero, received_hero))
+            time.sleep(2)
+            sys.exit(1)
+
+    if __name__ == "__main__":
+        integration_test()    
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: integration-tests
+  namespace: staging
+  labels:
+    app: integration-tests
+spec:
+  imagePullSecrets:
+  - name: private-registry    
+  containers:
+  - image: 52.18.239.125/python-base
+    command: ['/bin/sleep', '60']
+    name: integration-tests
+    volumeMounts:
+    - name: integration-tests
+      mountPath: /integration_tests        
+    env:
+    - name: WEB_HOST
+      value: web
+    - name: DB_HOST
+      value: db
+    - name: DB_DATABASE
+      value: heroes          
+    - name: DB_USER
+      value: user
+    - name: DB_PASSWORD
+      value: password  
+  volumes:
+  - name: integration-tests
+    configMap:
+      name: integration-tests
