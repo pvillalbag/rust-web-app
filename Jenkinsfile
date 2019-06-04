@@ -16,6 +16,7 @@ pipeline {
         AWS_STAGING_CLUSTER_NAME= 'cluster-of-User6'
 		
 		DOCKER_PF_WEB = 'web-port-forward-smoke-test'
+		DOCKER_PF_DB = 'db-port-forward-smoke-test'
 		
 		SLACK_CHANNEL = 'a-bit-of-everything'
 		SLACK_TEAM_DOMAIN = 'devopspipelines'
@@ -179,6 +180,40 @@ pipeline {
 			}
 		}
 		
+		stage('Staging: PF DB Migration') {    
+			steps {
+				script {
+					PODNAME = sh(script: "docker run -v ${HOME}/.kube:/root/.kube \
+						-e AWS_ACCESS_KEY_ID=${AWS_STAGING_USR} \
+						-e AWS_SECRET_ACCESS_KEY=${AWS_STAGING_PSW} \
+						mendrugory/ekskubectl \
+						kubectl get pods -n staging -l app=db \
+						-o jsonpath='{.items[0].metadata.name}'", returnStdout: true)
+					echo "The pod is ${PODNAME}"
+					sh(script: "docker run --name ${DOCKER_PF_DB} \
+						-v ${HOME}/.kube:/root/.kube -p 3306:3306 --rm \
+						-v /var/run/docker.sock:/var/run/docker.sock    \
+						-e AWS_ACCESS_KEY_ID=${AWS_STAGING_USR} \
+						-e AWS_SECRET_ACCESS_KEY=${AWS_STAGING_PSW} \
+						mendrugory/ekskubectl kubectl port-forward \
+						--address 0.0.0.0 -n staging ${PODNAME} 3306:3306 &")
+				}
+			}
+		}
+		
+		stage('Staging: DB Migration') {
+			agent {
+				dockerfile {
+					filename 'dockerfiles/diesel-cli.dockerfile' 
+					args '--entrypoint="" --net=host \
+					-e DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@0.0.0.0:3306/${MYSQL_DATABASE}'    
+				}
+			}
+			steps {
+				sh 'diesel migration run'    
+			}                
+		}
+		
 		stage('Staging: Smoke Testing') {
 			steps {
 				sh 'docker run --net=host --rm byrnedo/alpine-curl --fail -I http://0.0.0.0:8888/health'
@@ -205,7 +240,7 @@ pipeline {
 		always {
 			sh 'docker kill ${DOCKER_IMAGE} ${DB_IMAGE} || true'
 			sh 'docker network rm ${DOCKER_NETWORK_NAME} || true'
-			sh 'docker kill ${DOCKER_PF_WEB} || true'
+			sh 'docker kill ${DOCKER_PF_WEB} ${DOCKER_PF_DB} || true'
 		}
 	}
 }
